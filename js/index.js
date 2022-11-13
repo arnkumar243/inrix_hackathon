@@ -18,29 +18,29 @@ function initMap() {
     });
 }
 
-function includeNavigation(include) {
+function changeNavigation(include) {
     var allowedNavigation = ["#driver", "#rider", "#upcoming", "#history"]
     allowedNavigation.forEach(element => {
-        document.getElementById
-        if(include == "#" + element) {
-            $(include).css( "display", "block" );
+        if(include == element) {
+            $(element).css( "display", "flex" );
+            $(element + "-nav").addClass("active");
+            includeView(include);
         } else {
-            $(include).css( "display", "none" );
+            $(element).css( "display", "none" );
+            $(element + "-nav").removeClass("active");
         }
     })
 }
 
-$(function () {
-    var includes = $('[data-include]')
+function includeView(include) {
+    var includes = $(include + "-include")
     $.each(includes, function () {
-      var file = 'views/' + $(this).data('include') + '.html'
+      var file = 'views/' + include.substring(1) + '.html'
       $(this).load(file)
     })
-})
-
-function changeNavigation(navType) {
-
 }
+
+changeNavigation("#driver");
 
 
 window.initMap = initMap;
