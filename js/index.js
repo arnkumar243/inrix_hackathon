@@ -1,3 +1,4 @@
+
 function initialize(){
 
   //The center location of our map.
@@ -77,7 +78,7 @@ function initialize(){
           if(include == element) {
               $(element).css( "display", "flex" );
               $(element + "-nav").addClass("active");
-              
+              $(element + "-routes").css( "display", "none" );
               
           } else {
               $(element).css( "display", "none" );
@@ -98,6 +99,7 @@ function getCoordinatesForDriver() {
   var destination_lat = destination_place.geometry.location.lat();
   var destination_lng = destination_place.geometry.location.lng();
   var driver_coordinates = `${origin_lat},${origin_lng}/${destination_lat},${destination_lng}`;
+  return driver_coordinates;
 }
 
 function getCoordinatesForRider() {
@@ -107,7 +109,8 @@ function getCoordinatesForRider() {
   var origin_lng = origin_place.geometry.location.lng();
   var destination_lat = destination_place.geometry.location.lat();
   var destination_lng = destination_place.geometry.location.lng();
-  var driver_coordinates = `${origin_lat},${origin_lng}/${destination_lat},${destination_lng}`;
+  var rider_coordinates = `${origin_lat},${origin_lng}/${destination_lat},${destination_lng}`;
+  return rider_coordinates;
 }
 
 function getDirections() {
@@ -197,18 +200,48 @@ directionsService.route(request, function(response,status) {
 });
 }
 
-function makeRequest(uri, callback) {
+function makeRequest(uri, callback, event) {
   $.ajax({
       url: 'http://172.31.209.127:8080/allPossibleRoutes/' + uri,
       type: "GET",
 
       success: function (data) {
-          callback(data, false);
+          callback(data, false, event);
       },
 
       error: function (error) {
-          callback(data, true);
+          callback(error, true, event);
           console.log(`Error ${error}`);
       }
   });
+}
+
+function getWayPoints(event) {
+    var uri = getCoordinatesForDriver();
+    makeRequest(uri, parseResponse, event);
+}
+
+function parseResponse(response, isError, event) {
+    console.log(response[Object.keys(response)[0]]);
+    if(isError) {
+        alert("Unable to get response from server");
+    } else {
+        $("#driver-routes").css( "display", "block" );
+        $("#driver-form-div").css( "display", "none" );
+        $("#driver-path-1-summary").text(response[Object.keys(response)[0]].summary);
+        $("#driver-path-1-distance").text(response[Object.keys(response)[0]].totalDistance + " miles");
+        $("#driver-path-1-time").text("Estimated Time " + response[Object.keys(response)[0]].travelTimeMinutes + " mins");
+        $("#driver-path-1-speed").text(response[Object.keys(response)[0]].averageSpeed + " mph");
+
+    }
+    event.stopPropagation();
+}
+
+function driverRouteCancel() {
+    $("#driver-routes").css( "display", "none" );
+    $("#driver-form-div").css( "display", "block" );
+}
+
+function changeActiveForDriverRoute(id) {
+    $(id).css("border", "2px solid #007bff");
 }
