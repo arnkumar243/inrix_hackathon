@@ -1,4 +1,4 @@
-#map {
+#driver-map, #rider-map {
     height: 90vh;
     width: 100%;
 }
