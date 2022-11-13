@@ -1,6 +1,15 @@
 
 var driverRoutesData;
 
+function isLoggedIn() {
+    var userName = localStorage.getItem('username');
+    if(userName === null || userName === undefined) {
+        window.location.href = "http://127.0.0.1:5500/carpool/login.html";
+    }
+}
+
+isLoggedIn();
+
 function initialize(){
 
   //The center location of our map.
@@ -143,7 +152,7 @@ directionsRenderer.setMap(map2);
     var waypts = [];
 
     var points = driverRoutesData[Object.keys(driverRoutesData)[0]].points;
-    for(var i = 0; i < driverRoutesData[Object.keys(driverRoutesData)[0]].points.length; i = i + 20) {
+    for(var i = 0; i < driverRoutesData[Object.keys(driverRoutesData)[0]].points.length; i++) {
         console.log(points[i][1] + ", "+ points[i][0]);
         stop = new google.maps.LatLng(points[i][1], points[i][0])
         waypts.push({
@@ -263,4 +272,9 @@ function driverRouteCancel() {
 function changeActiveForDriverRoute(id) {
     $(id).css("border", "2px solid #007bff");
     getDirections();
+}
+
+function logout() {
+    localStorage.removeItem('username');
+    window.location.href = "http://127.0.0.1:5500/carpool/login.html";
 }
