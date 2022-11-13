@@ -278,3 +278,70 @@ function logout() {
     localStorage.removeItem('username');
     window.location.href = "http://127.0.0.1:5500/carpool/login.html";
 }
+
+function storeDriverRoutes() {
+
+    var driverCoordinates = getCoordinatesForDriver();
+    var coords = driverCoordinates.split("/");
+
+    var data = {
+        "name": localStorage.getItem('username'),
+        "routeId": Object.keys(driverRoutesData)[0],
+        "License": "DL14CC0741",
+        "startCoordinates": coords[0],
+        "endCoordinates": coords[1]
+    }
+
+
+    var request = $.ajax({ 
+        url: 'http://172.31.209.127:8080/saveRoute/', 
+        headers: { 
+            'Content-Type': 'application/json'
+        }, 
+        method: 'POST', 
+        dataType: 'json', 
+        data: data
+    }); 
+     
+    request.done(function (msg) { 
+        driverRouteCancel();
+    }); 
+     
+    request.fail(function (jqXHR, textStatus) { 
+        alert("Request failed: " + textStatus);
+        //driverRouteCancel();
+    }); 
+
+}
+
+
+function getRoutsForRider() {
+
+    var driverCoordinates = getCoordinatesForRider();
+    var coords = driverCoordinates.split("/");
+
+    var data = {
+        "startCoordinates": coords[0],
+        "endCoordinates": coords[1]
+    }
+
+    var request = $.ajax({ 
+        url: 'http://172.31.209.127:8080/getPersonalisedRides/', 
+        headers: { 
+            'Content-Type': 'application/json'
+        }, 
+        method: 'POST', 
+        dataType: 'json', 
+        data: data
+    }); 
+     
+    request.done(function (msg) { 
+        console.log(msg);
+    }); 
+     
+    request.fail(function (jqXHR, textStatus) { 
+        alert("Request failed: " + textStatus);
+        //driverRouteCancel();
+    }); 
+
+}
