@@ -1,6 +1,3 @@
-
-var defaultNav = "rider";
-
 function initialize(){
 
   //The center location of our map.
@@ -50,7 +47,7 @@ function initialize(){
   driver_to_auto = new google.maps.places.Autocomplete(driver_to,
   {
       type: ['establishment'],
-      componentRestrictions: {'country': ['IN']},
+      componentRestrictions: {'country': ['US']},
       fields: ['place_id','geometry','name']
   });
   rider_from_auto = new google.maps.places.Autocomplete(rider_from,
@@ -62,7 +59,7 @@ function initialize(){
   rider_to_auto = new google.maps.places.Autocomplete(rider_to,
   {
       type: ['establishment'],
-      componentRestrictions: {'country': ['IN']},
+      componentRestrictions: {'country': ['US']},
       fields: ['place_id','geometry','name']
   });
   
@@ -93,5 +90,125 @@ function initialize(){
 
 google.maps.event.addDomListener(window, 'load', initialize);
 
+function getCoordinatesForDriver() {
+  var origin_place = driver_from_auto.getPlace();
+  var destination_place = driver_to_auto.getPlace();
+  var origin_lat = origin_place.geometry.location.lat();
+  var origin_lng = origin_place.geometry.location.lng();
+  var destination_lat = destination_place.geometry.location.lat();
+  var destination_lng = destination_place.geometry.location.lng();
+  var driver_coordinates = `${origin_lat},${origin_lng}/${destination_lat},${destination_lng}`;
+}
 
+function getCoordinatesForRider() {
+  var origin_place = rider_from_auto.getPlace();
+  var destination_place = rider_to_auto.getPlace();
+  var origin_lat = origin_place.geometry.location.lat();
+  var origin_lng = origin_place.geometry.location.lng();
+  var destination_lat = destination_place.geometry.location.lat();
+  var destination_lng = destination_place.geometry.location.lng();
+  var driver_coordinates = `${origin_lat},${origin_lng}/${destination_lat},${destination_lng}`;
+}
 
+function getDirections() {
+  var origin_place = driver_from_auto.getPlace();
+  var destination_place = driver_to_auto.getPlace();
+  var origin_lat = origin_place.geometry.location.lat();
+  var origin_lng = origin_place.geometry.location.lng();
+  var destination_lat = destination_place.geometry.location.lat();
+  var destination_lng = destination_place.geometry.location.lng();
+
+  var directionsService = new google.maps.DirectionsService();
+  var directionsRenderer = new google.maps.DirectionsRenderer();
+  var origin_object = new google.maps.LatLng(origin_lat, origin_lng);
+  var destination_object = new google.maps.LatLng(destination_lat, destination_lng);
+
+  const map2 = new google.maps.Map(document.getElementById("driver-map"), {
+    center: {lat: 23.037506263879862, lng: 72.52325094533654},
+    zoom: 7,
+    mapTypeControl: true,
+    mapTypeControlOptions: {
+    style: google.maps.MapTypeControlStyle.HORIZONTAL_BAR,
+    position: google.maps.ControlPosition.TOP_CENTER,
+    }
+    
+});
+directionsRenderer.setMap(map2);
+var request = {
+  origin: origin_object,
+  destination: destination_object,
+  travelMode: google.maps.TravelMode["DRIVING"]
+}
+directionsService.route(request, function(response,status) {
+  // If a direction is available, the status would return 'OK' and that means we can use the response to display the directions.
+  if (status == "OK") {
+
+      directionsRenderer.setDirections(response);
+
+      // Creating object of DistanceMatrix to find the distance and duration of travelling from origin to destination.
+      var distanceService = new google.maps.DistanceMatrixService();
+
+      // getDistanceMatrix is a method which is responsible for calculating the distance and duration.
+      distanceService.getDistanceMatrix({
+          // in distance matrix, origin takes a list as a value.
+          //list can be of latitude or longitude, name of place or place id.
+          origins: [origin_object],
+          //same goes with destination.
+          destinations: [destination_object],
+          // travelMode: google.maps.TravelMode["TRANSIT"],
+          // unitSystem: google.maps.UnitSystem["METRIC"]
+      }, (response,status) => {
+          if (status == "OK") {
+              var origins = response.originAddresses;
+              var destinations = response.destinationAddresses;
+
+              for (var i = 0; i < origins.length; i++) {
+              var results = response.rows[i].elements;
+              for (var j = 0; j < results.length; j++) {
+                  var element = results[j];
+                  var distance = element.distance.text;
+                  var duration = element.duration.text;
+                  }
+              }
+              
+              var box = document.createElement('div');
+              box.style.backgroundColor = '#ffffff';
+              box.style.opacity = '0.8';
+              
+              var mydistance = document.createElement('h6');
+              mydistance.innerHTML = 'Distance: ' + distance;
+              var myduration = document.createElement('h6');
+              myduration.innerHTML = 'Duration: ' + duration;
+
+              box.appendChild(mydistance);
+              box.appendChild(myduration);
+              map.controls[google.maps.ControlPosition.TOP_LEFT].push(box);
+
+          } else {
+              window.alert(status)
+          }
+      });
+  }
+  // If a direction is not available (an invalid origin or destination is selected or entered by the user)
+  // an error would be displayed.
+  else {
+      window.alert("Unable to find direction due to" + status);
+  }
+});
+}
+
+function makeRequest(uri, callback) {
+  $.ajax({
+      url: 'http://172.31.209.127:8080/allPossibleRoutes/' + uri,
+      type: "GET",
+
+      success: function (data) {
+          callback(data, false);
+      },
+
+      error: function (error) {
+          callback(data, true);
+          console.log(`Error ${error}`);
+      }
+  });
+}
