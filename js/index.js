@@ -1,4 +1,6 @@
 
+var driverRoutesData;
+
 function initialize(){
 
   //The center location of our map.
@@ -127,7 +129,7 @@ function getDirections() {
   var destination_object = new google.maps.LatLng(destination_lat, destination_lng);
 
   const map2 = new google.maps.Map(document.getElementById("driver-map"), {
-    center: {lat: 23.037506263879862, lng: 72.52325094533654},
+    center: {lat: 37.7749, lng: -122.446747},
     zoom: 7,
     mapTypeControl: true,
     mapTypeControlOptions: {
@@ -137,9 +139,24 @@ function getDirections() {
     
 });
 directionsRenderer.setMap(map2);
+
+    var waypts = [];
+
+    var points = driverRoutesData[Object.keys(driverRoutesData)[0]].points;
+    for(var i = 0; i < driverRoutesData[Object.keys(driverRoutesData)[0]].points.length; i = i + 20) {
+        console.log(points[i][1] + ", "+ points[i][0]);
+        stop = new google.maps.LatLng(points[i][1], points[i][0])
+        waypts.push({
+            location: stop,
+            stopover: false
+        });
+    }
+
+
 var request = {
   origin: origin_object,
   destination: destination_object,
+  waypoints: waypts,
   travelMode: google.maps.TravelMode["DRIVING"]
 }
 directionsService.route(request, function(response,status) {
@@ -232,6 +249,7 @@ function parseResponse(response, isError, event) {
         $("#driver-path-1-distance").text(response[Object.keys(response)[0]].totalDistance + " miles");
         $("#driver-path-1-time").text("Estimated Time " + response[Object.keys(response)[0]].travelTimeMinutes + " mins");
         $("#driver-path-1-speed").text(response[Object.keys(response)[0]].averageSpeed + " mph");
+        driverRoutesData = response;
 
     }
     event.stopPropagation();
@@ -244,4 +262,5 @@ function driverRouteCancel() {
 
 function changeActiveForDriverRoute(id) {
     $(id).css("border", "2px solid #007bff");
+    getDirections();
 }
